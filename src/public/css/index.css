@@ -64,13 +64,15 @@ h1,.bg h2{
     width: 100%;
 }
 .file ul{
+    height: 620px;
     padding: 20px 50px 0 50px;
+    overflow:hidden;
 }
 .file ul li{
     text-align: center;
+    height: 150px;
 }
 .file ul li img{
-    width: 84%;
     height: 120px;
 }
 .file ul li img:hover{
@@ -123,6 +125,9 @@ h1,.bg h2{
     color: #333;
     background: #ccc;
 }
+.hot ul li .name{
+    margin-left: 10px;
+}
 h1{
     margin-bottom: 30px;
 }
@@ -134,4 +139,50 @@ h4{
     float: right;
     color: #000;
     cursor: pointer;
+}
+
+
+@media screen and (max-width: 640px) {
+.container{
+    margin-left: -6px;
+    width: 100%;
+}
+.int, .pro, .file, .hot{
+    margin-left: 4px;
+}
+.navbar-toggle{
+    margin-right: -12px;
+}
+.navbar-header{
+    width: 100%;
+}
+.bg{
+    width: 107%;
+	margin-top:-70px;
+	height:30px;
+}
+  h1,.bg h2{
+    line-height: 30px;
+    text-align: center;
+    color: #fff;
+    font-family: 微软雅黑;
+    font-size:20px;
+}
+.bg h2{
+    font-size:12px;
+}
+.int img{
+    display:none;
+}
+.pro h2{
+    line-height: 30px;
+    font-size:20px;
+}
+.pro p{
+    line-height: 20px;
+    font-size:16px;
+}
+.file ul{
+    padding:0;
+}
 }

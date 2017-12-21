@@ -1,5 +1,7 @@
 import * as Express from 'express';
+import * as multer from 'multer';
 import { error } from 'util';
+import { File } from '../../operations/file';
 import { User } from '../../operations/user';
 const user = new User();
 
@@ -25,6 +27,39 @@ router.post('/', async (req: any, res: any) => {
       break;
     default:
       res.send('error');
+  }
+});
+router.get('/', async (req: any, res: any) => {
+  const userId = req.session.userid || 0;
+  const sql = 'select * from user where id=' + userId + ';';
+  const file = new File('', '');
+  await file.getFiles(req, res, sql);
+});
+// 文件操作
+router.get('/:type', async (req: any, res: any) => {
+  let sql: string;
+  const file = new File('', '');
+  const userId = req.session.userid || 0;
+  switch (req.params.type) {
+    case 'allFiles':
+      sql =
+        'select * from file join user_file on (file.id=user_file.file) where user_file.user=' +
+        userId +
+        ';';
+      await file.getFiles(req, res, sql);
+      break;
+    case 'unchecked':
+      sql = 'select * from pending_file where user=' + userId + ';';
+      await file.getFiles(req, res, sql);
+      break;
+    default:
+      sql =
+        'select * from file join user_file on (file.id=user_file.file and file.type=\'' +
+        req.params.type +
+        '\') where user_file.user=' +
+        userId +
+        ';';
+      await file.getFiles(req, res, sql);
   }
 });
 

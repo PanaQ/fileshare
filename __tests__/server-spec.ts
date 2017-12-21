@@ -36,12 +36,59 @@ test('首页url测试', done => {
     });
 });
 
+test('热门文件url测试', done => {
+  request(app)
+    .get('/hots/video')
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      expect(res.text.includes('video')).toBeTruthy();
+      done();
+    });
+});
+test('热门音频url测试', done => {
+  request(app)
+    .get('/hots/zip')
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      expect(res.text.includes('video')).toBeTruthy();
+      done();
+    });
+});
+test('热门图片url测试', done => {
+  request(app)
+    .get('/hots/image')
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      expect(res.text.includes('video')).toBeTruthy();
+      done();
+    });
+});
+test('热门文章url测试', done => {
+  request(app)
+    .get('/hots/doc')
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      expect(res.text.includes('video')).toBeTruthy();
+      done();
+    });
+});
+
 test('测试访问用户页面success', done => {
   request(app)
     .get('/user/5555')
     .expect(200, function(err, res) {
       expect(err).toBeFalsy();
       expect(res.text.includes('-用户文件管理')).toBeTruthy();
+      done();
+    });
+});
+
+test('测试文件详情页面', done => {
+  request(app)
+    .get('/user/1/file/1')
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      expect(res.text.includes('-文件详情页')).toBeTruthy();
       done();
     });
 });
@@ -54,6 +101,7 @@ test('测试访问用户页面fail', done => {
       done();
     });
 });
+/* 管理员 url */
 test('测试管理员登录success', done => {
   request(app)
     .get('/admin/login')
@@ -69,6 +117,117 @@ test('测试管理员 password modify', done => {
     .expect(200, function(err, res) {
       expect(err).toBeFalsy();
       expect(res.text.includes('管理员个人设置')).toBeTruthy();
+      done();
+    });
+});
+test('测试登录统计数据页面', done => {
+  request(app)
+    .get('/admin/sites')
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      expect(res.text.includes('网站数据统计')).toBeTruthy();
+      done();
+    });
+});
+test('测试管理员 logout', done => {
+  request(app)
+    .get('/admin/logout')
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      expect(res.text.includes('-管理员登录')).toBeTruthy();
+      done();
+    });
+});
+/* 管理员 api */
+test('测试数据库链接', done => {
+  var con = mysql.createConnection({
+    host: process.env.MYSQL_HOST,
+    user: process.env.MYSQL_USERNAME,
+    password: process.env.MYSQL_PASSWORD,
+    database: 'cloud',
+  });
+  // 创建admin数据
+  con.query(
+    "INSERT INTO admin(username, password) VALUES ('123','123')",
+    function(err) {
+      expect(err).toBeFalsy();
+      console.log('insert success');
+      con.end();
+      done();
+    }
+  );
+});
+test('测试管理员 login', done => {
+  request(app)
+    .post('/api/admins')
+    .type('form')
+    .send({
+      action: 'login',
+      username: 123,
+      password: 123,
+    })
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      expect(res.body === 'ok').toBeTruthy();
+      done();
+    });
+});
+test('测试管理员 login', done => {
+  request(app)
+    .post('/api/admins')
+    .type('form')
+    .send({
+      action: 'login',
+      username: 111,
+      password: 123,
+    })
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      expect(res.body === 'username none').toBeTruthy();
+      done();
+    });
+});
+test('测试管理员 login', done => {
+  request(app)
+    .post('/api/admins')
+    .type('form')
+    .send({
+      action: 'login',
+      username: 123,
+      password: 111,
+    })
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      expect(res.body === 'password none').toBeTruthy();
+      done();
+    });
+});
+test('测试管理员 sites data', done => {
+  var con = mysql.createConnection({
+    host: process.env.MYSQL_HOST,
+    user: process.env.MYSQL_USERNAME,
+    password: process.env.MYSQL_PASSWORD,
+    database: 'cloud',
+  });
+  con.query(
+    'INSERT INTO website_statistics(registers, downloads, uploads, visits, date) VALUES (2, 4, 5, 1, "2017-11-11")',
+    function(err) {
+      expect(err).toBeFalsy();
+      console.log('insert success');
+      con.end();
+      done();
+    }
+  );
+});
+test('测试管理员 sites api', done => {
+  request(app)
+    .get('/api/admins/sites')
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      console.log('测试管理员 sites api');
+      console.log(res.text);
+      console.log(res.body[0].registers);
+      expect(res.body[0].registers === 2).toBeTruthy();
       done();
     });
 });
@@ -128,7 +287,7 @@ test('测试数据库链接', done => {
     password: process.env.MYSQL_PASSWORD,
     database: 'cloud',
   });
-  // 创建user
+  // 创建user数据
   con.query(
     "INSERT INTO user(username, password, email, created_at) VALUES ('user1','123','user1.qq','2017-10-20')",
     function(err) {
@@ -260,12 +419,12 @@ test('default', done => {
     });
 });
 
-test('测试用户所有获取', done => {
+test('测试用户分页获取', done => {
   request(app)
-    .get('/api/admins/users')
+    .get('/api/admins/users?page=0')
     .expect(200, function(err, res) {
       expect(err).toBeFalsy();
-      expect(res.body[0].username === 'user1').toBeTruthy();
+      expect(res.body.pages === 1).toBeTruthy();
       done();
     });
 });
@@ -286,6 +445,15 @@ test('测试单用户查询结果无此用户', done => {
     .expect(200, function(err, res) {
       expect(err).toBeFalsy();
       expect(res.body === 'none').toBeTruthy();
+      done();
+    });
+});
+
+test('测试单文件信息查询', done => {
+  request(app)
+    .post('/api/files/1')
+    .expect(200, function(err, res) {
+      expect(res.text !== 0).toBeTruthy();
       done();
     });
 });
@@ -388,7 +556,169 @@ test('测试.md文件上传成功', done => {
       done();
     });
 });
+test('测试.exe文件上传成功', done => {
+  request(app)
+    .post('/api/files')
+    .type('form')
+    .field('action', 'upload')
+    .attach('_upload', '__tests__/fixtures/1.exe')
+    .expect(200, (err, res) => {
+      expect(err).toBeFalsy();
+      expect(res.body === '上传成功').toBeTruthy();
+      done();
+    });
+});
+test('测试.png文件上传成功', done => {
+  request(app)
+    .post('/api/files')
+    .type('form')
+    .field('action', 'upload')
+    .attach('_upload', '__tests__/fixtures/1.png')
+    .expect(200, (err, res) => {
+      expect(err).toBeFalsy();
+      expect(res.body === '上传成功').toBeTruthy();
+      done();
+    });
+});
+test('获取未审核文件', done => {
+  request(app)
+    .get('/api/files?filter=pending')
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      done();
+    });
+});
 
+test('测试文件审核失败 id=不存在', done => {
+  request(app)
+    .post('/api/files')
+    .type('form')
+    .send({
+      action: 'permit',
+      id: '1000',
+    })
+    .expect(500, function(err, res) {
+      done();
+    });
+});
+
+test('测试文件未审核失败 id=不存在', done => {
+  request(app)
+    .post('/api/files')
+    .type('form')
+    .send({
+      action: 'reject',
+      id: '1000',
+    })
+    .expect(500, function(err, res) {
+      done();
+    });
+});
+
+test('测试文件审核通过 id=1', done => {
+  request(app)
+    .post('/api/files')
+    .type('form')
+    .send({
+      action: 'permit',
+      id: '1',
+    })
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      done();
+    });
+});
+
+test('测试文件审核通过 id=2', done => {
+  request(app)
+    .post('/api/files')
+    .type('form')
+    .send({
+      action: 'permit',
+      id: '2',
+    })
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      done();
+    });
+});
+
+test('测试文件审核通过 id=3', done => {
+  request(app)
+    .post('/api/files')
+    .type('form')
+    .send({
+      action: 'permit',
+      id: '3',
+    })
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      done();
+    });
+});
+
+test('测试文件审核通过 id=4', done => {
+  request(app)
+    .post('/api/files')
+    .type('form')
+    .send({
+      action: 'permit',
+      id: '4',
+    })
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      done();
+    });
+});
+test('测试文件审核通过 id=5', done => {
+  request(app)
+    .post('/api/files')
+    .type('form')
+    .send({
+      action: 'permit',
+      id: '5',
+    })
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      done();
+    });
+});
+
+test('测试文件审核未通过 id=6', done => {
+  request(app)
+    .post('/api/files')
+    .type('form')
+    .send({ action: 'reject', id: '6' })
+    .expect(200, (err, res) => {
+      expect(err).toBeFalsy();
+      done();
+    });
+});
+test('测试文件审核通过 id=7', done => {
+  request(app)
+    .post('/api/files')
+    .type('form')
+    .send({
+      action: 'permit',
+      id: '7',
+    })
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      done();
+    });
+});
+test('测试文件删除 id=7', done => {
+  request(app)
+    .post('/api/files')
+    .type('form')
+    .field('action', 'delete')
+    .field('id[]', [7, 8])
+    .expect(200, (err, res) => {
+      expect(err).toBeFalsy();
+      expect(res.body === 'delete suc').toBeTruthy();
+      done();
+    });
+});
 test('insert file', done => {
   let app = Express();
   let server = new Server(app, 3000);
@@ -410,7 +740,17 @@ test('insert file', done => {
     }
   );
 });
-
+test('测试获取所有', done => {
+  request(app)
+    .get('/api/files?type=all')
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      console.log(err);
+      console.log(res.body);
+      expect(res.body).toBeTruthy();
+      done();
+    });
+});
 test('测试获取分类文件', done => {
   request(app)
     .get('/api/files?type=image')
@@ -423,42 +763,141 @@ test('测试获取分类文件', done => {
     });
 });
 
-test('测试download----', done => {
+test('测试download----success', done => {
   request(app)
     .get('/user/download?id=1')
     .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
       done();
     });
 });
 
 test('测试download----fail', done => {
-  let app = Express();
-  let server = new Server(app, 3000);
-  var con = mysql.createConnection({
-    host: process.env.MYSQL_HOST,
-    user: process.env.MYSQL_USERNAME,
-    password: process.env.MYSQL_PASSWORD,
-    database: 'cloud',
-  });
-  con.query(
-    "insert into file(filename, type, size, downloads,hash) values ('girlTest.JPG','image',40,2,'asgsagasgasdaasg');",
-    function(err) {
-      expect(err).toBeFalsy();
-      console.log('insert success');
-      con.end();
-      done();
-    }
-  );
   request(app)
-    .get('/user/download?id=2')
-    .expect(200, function(err, res) {
+    .get('/user/download?id=9')
+    .expect(404, function(err, res) {
       expect(err).toBeFalsy();
-      // console.log(err);
-      expect(res.text.includes('not')).toBeTruthy();
       done();
     });
 });
 
+test('/hot/video读取测试', done => {
+  request(app)
+    .get('/api/files/hots?type=video')
+    .expect(200, function(err, res) {
+      console.log(err);
+      console.log(res.text);
+      expect(err).toBeFalsy();
+      expect(res.body.length >= 1).toBeTruthy();
+      done();
+    });
+});
+test('/hot/zip读取测试', done => {
+  request(app)
+    .get('/api/files/hots?type=zip')
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      expect(res.body.length >= 1).toBeTruthy();
+      done();
+    });
+});
+test('/hot/image读取测试', done => {
+  request(app)
+    .get('/api/files/hots?type=image')
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      expect(res.body.length >= 1).toBeTruthy();
+      done();
+    });
+});
+test('/hot/doc读取测试', done => {
+  request(app)
+    .get('/api/files/hots?type=doc')
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      expect(res.body.length >= 1).toBeTruthy();
+      done();
+    });
+});
+
+test('测试获取用户名', done => {
+  request(app)
+    .get('/api/users/')
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      expect(res.text !== '').toBeTruthy();
+      done();
+    });
+});
+test('测试文件分类--allFiles', done => {
+  request(app)
+    .get('/api/users/allFiles')
+    .expect(200, function(err, res) {
+      expect(err).toBeFalsy();
+      expect(res.text !== '').toBeTruthy();
+      done();
+    });
+});
+test('测试文件分类--image', done => {
+  request(app)
+    .get('/api/users/image')
+    .expect(200, function(err, res) {
+      // res.send();
+      expect(err).toBeFalsy();
+      expect(res.text !== '').toBeTruthy();
+      done();
+    });
+});
+test('测试文件分类--text', done => {
+  request(app)
+    .get('/api/users/text')
+    .expect(200, function(err, res) {
+      // res.send();
+      expect(err).toBeFalsy();
+      expect(res.text !== '').toBeTruthy();
+      done();
+    });
+});
+test('测试文件分类--video', done => {
+  request(app)
+    .get('/api/users/video')
+    .expect(200, function(err, res) {
+      // res.send();
+      expect(err).toBeFalsy();
+      expect(res.text !== '').toBeTruthy();
+      done();
+    });
+});
+test('测试文件分类--zip', done => {
+  request(app)
+    .get('/api/users/zip')
+    .expect(200, function(err, res) {
+      // res.send();
+      expect(err).toBeFalsy();
+      expect(res.text !== '').toBeTruthy();
+      done();
+    });
+});
+test('测试文件分类--other', done => {
+  request(app)
+    .get('/api/users/other')
+    .expect(200, function(err, res) {
+      // res.send();
+      expect(err).toBeFalsy();
+      expect(res.text !== '').toBeTruthy();
+      done();
+    });
+});
+test('测试文件分类--unchecked', done => {
+  request(app)
+    .get('/api/users/unchecked')
+    .expect(200, function(err, res) {
+      // res.send();
+      expect(err).toBeFalsy();
+      expect(res.text !== '').toBeTruthy();
+      done();
+    });
+});
 beforeAll(function(done) {
   var con = mysql.createConnection({
     host: process.env.MYSQL_HOST,
@@ -466,6 +905,7 @@ beforeAll(function(done) {
     password: process.env.MYSQL_PASSWORD,
   });
   con.query('DROP DATABASE IF EXISTS cloud;', function(err) {
+    console.log('zheli');
     expect(err).toBeFalsy();
     console.log('删除数据库cloud');
     con.query('CREATE DATABASE cloud character set utf8;', function(err) {
@@ -484,12 +924,12 @@ beforeAll(function(done) {
           expect(err).toBeFalsy();
           console.log('success user');
           con.query(
-            'create table pending_file (id int auto_increment,filename varchar(255) not null,type varchar(20) not null,size int not null,hash varchar(64) not null,primary key(id));',
+            'create table pending_file (id int auto_increment,user int not null,filename varchar(255) not null,type varchar(20) not null,size int not null,hash varchar(64) not null,primary key(id));',
             function(err) {
               expect(err).toBeFalsy();
               console.log('success pending_file');
               con.query(
-                'create table user_file (id int auto_increment,file int not null,user int not null,upload_at datetime not null,primary key(id));',
+                'create table user_file (id int auto_increment,file int not null,user int not null,uploaded_at datetime not null,primary key(id));',
                 function(err) {
                   expect(err).toBeFalsy();
                   console.log('success user_file');
@@ -499,7 +939,7 @@ beforeAll(function(done) {
                       expect(err).toBeFalsy();
                       console.log('success file');
                       con.query(
-                        'create table admin (id int primary key auto_increment,username varchar(20)not null,password varchar(64)not null,created_at datetime not null);',
+                        'create table admin (id int primary key auto_increment,username varchar(20)not null,password varchar(64)not null);',
                         function(err) {
                           expect(err).toBeFalsy();
                           console.log('success admin');
